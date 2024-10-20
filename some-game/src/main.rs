@@ -16,14 +16,14 @@ static DEFAULT_HEIGHT: u32 = 720;
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         if let App::Uninit = self {
-            log::trace!("Initializing Application");
+            tracing::trace!("Initializing Application");
             let win = match event_loop.create_window(
                 Window::default_attributes()
                     .with_inner_size(LogicalSize::new(DEFAULT_WIDTH, DEFAULT_HEIGHT)),
             ) {
                 Ok(w) => w,
                 Err(e) => {
-                    log::error!(target: "main_application", "OSError creating window {}", e);
+                    tracing::error!(target: "main_application", "OSError creating window {}", e);
                     event_loop.exit();
                     return;
                 }
@@ -60,7 +60,12 @@ impl ApplicationHandler for App {
 }
 
 fn main() -> anyhow::Result<()> {
-    pretty_env_logger::init();
+    tracing::subscriber::set_global_default(
+        tracing_subscriber::FmtSubscriber::builder()
+            .with_max_level(tracing::Level::TRACE)
+            .finish(),
+    )
+    .expect("Unable to register tracing subscriber");
     let event_loop = EventLoop::new()?;
     let mut app = App::Uninit;
     event_loop.run_app(&mut app)?;
